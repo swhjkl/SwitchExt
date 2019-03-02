@@ -14,23 +14,28 @@
 "
 "Version:
 " 2006-04-12 - 0.1 - initial version
+" 2018-11-02 - 0.2 - modified version for multiple ext support
+" (swhjkl@gmail.com)
 
 function! SwitchExt()
+	let s:header_ext_list = ["h", "hpp"]
+	let s:src_ext_list = ["cpp", "cc", "cxx", "c"]
 	let s:ext = expand('%:e')
-	if exists("g:switchext_srcext")
-		let s:cppext = g:switchext_srcext
+	if index(s:header_ext_list, s:ext) >= 0
+		let s:ext_list = s:src_ext_list
+	elseif index(s:src_ext_list, s:ext) >= 0
+		let s:ext_list = s:header_ext_list
 	else
-		let s:cppext = "cpp"
+		echo "unknown file type"
+		return
 	endif
-	if s:ext == "h"
-		let s:newname = expand('%<') . "." . s:cppext
-	elseif s:ext == s:cppext
-		let s:newname = expand('%<') . ".h"
-	endif
-	if exists("s:newname")
-		execute "e! " . s:newname
-	else
-		echo "This is neither a " . s:cppext . " file nor a h file"
-	endif
+	for ext in s:ext_list
+		let peer_name = expand('%<') . "." . ext
+		if filereadable(peer_name)
+			execute "e! " . peer_name
+			return
+		endif
+	endfor
+	execute "e! " . expand('%<') . "." . s:ext_list[0]
 endfunction
 
